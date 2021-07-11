@@ -12,10 +12,12 @@ namespace SingleQuartzHost.Crontab.Jobs
         /// <summary>
         /// 日志
         /// </summary>
-        private readonly ILogger _logger;
+        private readonly ILogger<MyJob2> _logger;
 
         public MyJob2(ILogger<MyJob2> logger)
-            => _logger = logger;
+        {
+            _logger = logger;
+        }
 
         public Task Execute(IJobExecutionContext context)
         {

@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using MySql.Data.MySqlClient;
 using Quartz;
 using Quartz.Impl;
@@ -14,12 +11,8 @@ using Quartz.Impl.AdoJobStore.Common;
 using Quartz.Spi;
 using QuartzAggregate.Crontab;
 using QuartzAggregate.Crontab.Jobs;
-using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace QuartzAggregate
 {
@@ -35,18 +28,13 @@ namespace QuartzAggregate
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "QuartzAggregate", Version = "v1" });
-            });
-
             #region quartz
 
             services.AddHostedService<QuartzHostedService>();
             services.AddSingleton<IJobFactory, JobFactory>();
-            services.AddSingleton<ISchedulerFactory>(u => {
+            services.AddSingleton<ISchedulerFactory>(u =>
+            {
+                // 根据自己的数据库类型，自行进入这个地址复制SQL执行：https://github.com/quartznet/quartznet/tree/master/database/tables
                 DbProvider.RegisterDbMetadata("mysql-custom", new DbMetadata()
                 {
                     AssemblyName = typeof(MySqlConnection).Assembly.GetName().Name,
@@ -66,7 +54,7 @@ namespace QuartzAggregate
                     ["quartz.jobStore.dataSource"] = "myDS", // 配置数据源名称
                     ["quartz.jobStore.tablePrefix"] = "QRTZ_", // quartz所使用的表，在当前数据库中的表前缀
                     ["quartz.jobStore.driverDelegateType"] = "Quartz.Impl.AdoJobStore.StdAdoDelegate, Quartz",  // 配置AdoJobStore使用的DriverDelegate
-                    ["quartz.dataSource.myDS.connectionString"] = "server=;uid=;pwd=;database=", // 配置数据库连接字符串，自己处理好连接字符串，我这里就直接这么写了
+                    ["quartz.dataSource.myDS.connectionString"] = "Server=local.host;User Id=root;Password=123456;Database=QuartzNet;Charset=utf8;", // 配置数据库连接字符串
                     ["quartz.dataSource.myDS.provider"] = "mysql-custom", // 配置数据库提供程序（这里是自定义的，定义的代码在上面）
                     ["quartz.jobStore.lockHandler.type"] = "Quartz.Impl.AdoJobStore.UpdateLockRowSemaphore, Quartz",
                     ["quartz.serializer.type"] = "binary",
@@ -95,19 +83,16 @@ namespace QuartzAggregate
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "QuartzAggregate v1"));
             }
-
-            app.UseHttpsRedirection();
 
             app.UseRouting();
 
-            app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapGet("/", async context =>
+                {
+                    await context.Response.WriteAsync("Group Server Quartz Sample in NET 5.0.");
+                });
             });
         }
     }

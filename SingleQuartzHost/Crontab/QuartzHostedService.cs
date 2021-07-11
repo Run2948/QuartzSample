@@ -76,7 +76,7 @@ namespace SingleQuartzHost.Crontab
                 await _scheduler.ScheduleJob(job, trigger, cancellationToken);
             }
 
-            await _scheduler.Start();
+            await _scheduler.Start(cancellationToken);
         }
 
         /// <summary>
@@ -85,7 +85,9 @@ namespace SingleQuartzHost.Crontab
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task StopAsync(CancellationToken cancellationToken)
-            => await _scheduler?.Shutdown(cancellationToken);
+        {
+            await _scheduler?.Shutdown(cancellationToken);
+        }
 
         /// <summary>
         /// 创建定时作业
@@ -130,9 +132,9 @@ namespace SingleQuartzHost.Crontab
                     return $"NdcPayInternal_Job_{schedule.JobType.Name}";
                 case IdentityType.Trigger:
                     return $"NdcPayInternal_Trigger_{schedule.JobType.Name}";
+                default:
+                    return schedule.JobType.FullName;
             }
-
-            return schedule.JobType.FullName;
         }
 
         /// <summary>

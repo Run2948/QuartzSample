@@ -2,6 +2,7 @@
 using Quartz;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,14 +13,16 @@ namespace QuartzAggregate.Crontab.Jobs
         /// <summary>
         /// 日志
         /// </summary>
-        private readonly ILogger _logger;
+        private readonly ILogger<MyJob1> _logger;
 
         public MyJob1(ILogger<MyJob1> logger)
-            => _logger = logger;
+        {
+            _logger = logger;
+        }
 
         public Task Execute(IJobExecutionContext context)
         {
-            _logger.LogInformation(DateTime.Now.ToString() + "  执行了我，我是 【job1】");
+            _logger.LogInformation($"{DateTime.Now}  执行了我，我是 【job1】");
 
             return Task.CompletedTask;
         }

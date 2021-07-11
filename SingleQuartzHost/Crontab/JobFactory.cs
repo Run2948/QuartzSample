@@ -20,7 +20,9 @@ namespace SingleQuartzHost.Crontab
         /// </summary>
         /// <param name="serviceProvider"></param>
         public JobFactory(IServiceProvider serviceProvider)
-            => _serviceProvider = serviceProvider;
+        {
+            _serviceProvider = serviceProvider;
+        }
 
         /// <summary>
         /// 按照startup里批量注册的job，创建一个指定类型的job

@@ -71,8 +71,8 @@ namespace QuartzAggregate.Crontab
             foreach (var jobSchedule in _jobSchedules)
             {
                 // 判断数据库中有没有记录过，有的话，quartz会自动从数据库中提取信息创建 schedule
-                if (!await _scheduler.CheckExists(new JobKey(GenerateIdentity(jobSchedule, IdentityType.Job))) &&
-                !await _scheduler.CheckExists(new TriggerKey(GenerateIdentity(jobSchedule, IdentityType.Trigger))))
+                if (!await _scheduler.CheckExists(new JobKey(GenerateIdentity(jobSchedule, IdentityType.Job)), cancellationToken) &&
+                !await _scheduler.CheckExists(new TriggerKey(GenerateIdentity(jobSchedule, IdentityType.Trigger)), cancellationToken))
                 {
                     var job = CreateJob(jobSchedule);
                     var trigger = CreateTrigger(jobSchedule);
@@ -81,7 +81,7 @@ namespace QuartzAggregate.Crontab
                 }
             }
 
-            await _scheduler.Start();
+            await _scheduler.Start(cancellationToken);
         }
 
         /// <summary>
@@ -90,7 +90,9 @@ namespace QuartzAggregate.Crontab
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task StopAsync(CancellationToken cancellationToken)
-            => await _scheduler?.Shutdown(cancellationToken);
+        {
+            await _scheduler?.Shutdown(cancellationToken);
+        }
 
         /// <summary>
         /// 创建定时作业
@@ -135,9 +137,9 @@ namespace QuartzAggregate.Crontab
                     return $"NdcPayInternal_Job_{schedule.JobType.Name}";
                 case IdentityType.Trigger:
                     return $"NdcPayInternal_Trigger_{schedule.JobType.Name}";
+                default:
+                    return schedule.JobType.FullName;
             }
-
-            return schedule.JobType.FullName;
         }
 
         /// <summary>
